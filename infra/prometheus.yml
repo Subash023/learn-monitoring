@@ -1,0 +1,54 @@
+# infra/prometheus.yml
+#
+# This is the shared Prometheus configuration for the Docker projects (01–03).
+# Prometheus and Grafana run here as the central monitoring infrastructure.
+#
+# Apps running natively on the host are scraped by the native Prometheus
+# (/etc/prometheus/prometheus.yml from wsl-setup/), not by this Docker instance.
+#
+# HOW TO ADD A PROJECT:
+#   1. Start the project (docker compose up -d --build in the project directory)
+#   2. Uncomment that project's job block below
+#   3. Reload Prometheus: curl -X POST http://localhost:9090/-/reload
+#   4. Verify at http://localhost:9090/targets (the new target should show UP)
+
+global:
+  scrape_interval: 15s        # collect metrics every 15 seconds
+  evaluation_interval: 15s    # evaluate alerting rules every 15 seconds
+
+scrape_configs:
+
+  # Prometheus scrapes its own internal metrics — always on.
+  - job_name: "prometheus"
+    static_configs:
+      - targets: ["localhost:9090"]
+
+  # ---------------------------------------------------------------------------
+  # Project 1 — Flask Web API (port 8081)
+  # Uncomment after: cd projects/01-flask-web-api && docker compose up -d --build
+  # ---------------------------------------------------------------------------
+  - job_name: "flask-web-api"
+    static_configs:
+      - targets: ["flask-web-api:8081"]
+
+  # ---------------------------------------------------------------------------
+  # Project 2 — Job Processor (port 8082)
+  # Uncomment after: cd projects/02-job-processor && docker compose up -d --build
+  # ---------------------------------------------------------------------------
+  - job_name: "job-processor"
+    static_configs:
+      - targets: ["job-processor:8082"]
+
+  # ---------------------------------------------------------------------------
+  # Project 3 — Cache Service (port 8083)
+  # Uncomment after: cd projects/03-cache-service && docker compose up -d --build
+  # ---------------------------------------------------------------------------
+  - job_name: "cache-service"
+    static_configs:
+      - targets: ["cache-service:8083"]
+
+  # ---------------------------------------------------------------------------
+  # Apps that run natively (not in Docker) cannot be reached by container name.
+  # They are scraped by the native Prometheus from wsl-setup/ / linux-setup/ /
+  # mac-setup/ — add their jobs to that prometheus.yml, not here.
+  # ---------------------------------------------------------------------------
